@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Asistente Experto en Dietas</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Asistente experto en dietas</h1>
+    <p class="subtitle">Introduce tu perfil y obtén un plan nutricional personalizado</p>
+
+    <!-- ===== CARD: DATOS PERSONALES ===== -->
+    <div class="card">
+      <p class="section-title">Datos personales</p>
+      <div class="row3">
+        <div class="field">
+          <label>Nombre</label>
+          <input type="text" id="nombre" placeholder="Tu nombre" />
+        </div>
+        <div class="field">
+          <label>Edad</label>
+          <input type="number" id="edad" placeholder="25" min="10" max="99" />
+        </div>
+        <div class="field">
+          <label>Sexo</label>
+          <!-- Botones de selección de sexo; el estado real se guarda en la variable JS 'sexo' -->
+          <div class="seg">
+            <button id="btn-h" class="active" onclick="setSexo('H')">Hombre</button>
+            <button id="btn-m" onclick="setSexo('M')">Mujer</button>
+          </div>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>Peso (kg)</label>
+          <input type="number" id="peso" placeholder="70" min="30" max="250" />
+        </div>
+        <div class="field">
+          <label>Talla (cm)</label>
+          <input type="number" id="talla" placeholder="175" min="100" max="230" />
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== CARD: OBJETIVO ===== -->
+    <div class="card">
+      <p class="section-title">Objetivo</p>
+      <!-- Botones de objetivo; el estado real se guarda en la variable JS 'objetivo' -->
+      <div class="seg">
+        <button id="btn-perder" class="active" onclick="setObj('perder_grasa')">Perder grasa</button>
+        <button id="btn-ganar" onclick="setObj('ganar_musculo')">Ganar músculo</button>
+      </div>
+    </div>
+
+    <!-- ===== CARD: CONDICIONES DE SALUD ===== -->
+    <div class="card">
+      <p class="section-title">Condiciones de salud</p>
+      <!-- El valor de cada checkbox se envía como string al backend (p.ej. "diabetes") -->
+      <div class="check-grid">
+        <label class="check-item"><input type="checkbox" value="intolerante_lactosa"> Intolerancia a la lactosa</label>
+        <label class="check-item"><input type="checkbox" value="lesion_rodilla"> Lesión de rodilla</label>
+        <label class="check-item"><input type="checkbox" value="diabetes"> Diabetes</label>
+        <label class="check-item"><input type="checkbox" value="hipertension"> Hipertensión</label>
+        <label class="check-item"><input type="checkbox" value="celiaquia"> Celiaquía (sin gluten)</label>
+        <label class="check-item"><input type="checkbox" value="vegetariano"> Vegetariano/Vegano</label>
+      </div>
+    </div>
+
+    <!-- Botón principal que llama a generarPlan() en script.js -->
+    <button class="btn-run" id="btn" onclick="generarPlan()">Generar mi plan personalizado</button>
+
+    <!-- Zona de resultados: empieza vacía, renderPlan() la rellena dinámicamente -->
+    <div class="result-area" id="result"></div>
+  </div>
+
+
+  <!-- ============================================================
+       PLANTILLAS HTML (no se renderizan, son invisibles al usuario)
+       JS las clona con cloneNode() para generar el contenido dinámico
+       sin escribir HTML dentro de strings de JavaScript
+  ============================================================ -->
+
+  <!-- Plantilla genérica de tarjeta: tiene un título y un cuerpo vacío -->
+  <template id="tpl-plan-card">
+    <div class="plan-card">
+      <h3 class="card-title"></h3>
+      <div class="card-body"></div>
+    </div>
+  </template>
+
+  <!-- Plantilla para un bloque de día (Lunes, Martes...):
+       contiene el nombre del día y un contenedor para las comidas -->
+  <template id="tpl-day-block">
+    <div class="day-block">
+      <p class="day-name"></p>
+      <div class="meals"></div>
+    </div>
+  </template>
+
+  <!-- Plantilla para una fila de comida (desayuno / comida / cena):
+       icono + nombre del momento del día + alimento sugerido -->
+  <template id="tpl-meal-row">
+    <div class="meal-row">
+      <span class="meal-icon"></span>
+      <span class="meal-name"></span>
+      <span class="meal-food"></span>
+    </div>
+  </template>
+
+
+  <script src="script.js"></script>
+</body>
+</html>
