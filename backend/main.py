@@ -29,8 +29,8 @@ class SolicitudPlan(BaseModel):
     talla: float
     sexo: str
     objetivo: str
+    actividad: str
     salud: List[str]
-    texto_libre: Optional[str] = None # Por si usas el "Modo Conversacional"
 
 @app.post("/generar-plan")
 async def api_generar_plan(datos: SolicitudPlan):
@@ -39,13 +39,9 @@ async def api_generar_plan(datos: SolicitudPlan):
     ejecuta el motor de reglas experto y devuelve un plan de fitness personalizado.
     """
     try:
-        # 1. PASO PLN: Si hay texto libre, extraemos datos. Si no, normalizamos los del form.
-        if datos.texto_libre:
-            datos_finales = pln_processor.extraer_datos(datos.texto_libre)
-            datos_finales["nombre"] = datos.nombre # Mantenemos el nombre del form
-        else:
-            # Usamos la función de normalización que definimos en pln.py
-            datos_finales = pln_processor.normalizar_datos(datos.dict())
+
+        # Usamos la función de normalización que definimos en pln.py
+        datos_finales = pln_processor.normalizar_datos(datos.dict())
 
         # 2. PASO MOTOR EXPERTO: Alimentamos el motor de tu archivo .ipynb
         engine = MotorFitness()
@@ -59,6 +55,7 @@ async def api_generar_plan(datos: SolicitudPlan):
             peso=datos_finales["peso"],
             talla=datos_finales["talla"],
             objetivo=datos_finales["objetivo"],
+            actividad=datos_finales["actividad"],
             salud=datos_finales["salud"]
         ))
         

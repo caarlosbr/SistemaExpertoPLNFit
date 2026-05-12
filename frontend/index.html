@@ -68,6 +68,17 @@
       </div>
     </div>
 
+  <div class="card">
+    <p class="section-title">Actividad física</p>
+    <div class="seg" id="seg-actividad">
+      <button class="active" onclick="setActividad('sedentario')">Sedentario</button>
+      <button onclick="setActividad('ligero')">1-2 días</button>
+      <button onclick="setActividad('moderado')">3-4 días</button>
+      <button onclick="setActividad('activo')">5-6 días</button>
+      <button onclick="setActividad('muy_activo')">7 días</button>
+    </div>
+  </div>
+
     <!-- Botón principal que llama a generarPlan() en script.js -->
     <button class="btn-run" id="btn" onclick="generarPlan()">Generar mi plan personalizado</button>
 

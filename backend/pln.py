@@ -87,11 +87,12 @@ class ModuloPLN:
         """Normalización mencionada en el diagrama de arquitectura"""
         # Asegura que los tipos de datos sean correctos para el Motor de Reglas
         return {
-            "nombre": str(datos_formulario.get("nombre", "Usuario")),
-            "edad": int(datos_formulario.get("edad", 25)),
-            "peso": float(datos_formulario.get("peso", 70.0)),
-            "talla": float(datos_formulario.get("talla", 170.0)),
-            "sexo": str(datos_formulario.get("sexo", "H")),
-            "objetivo": str(datos_formulario.get("objetivo", "perder_grasa")),
-            "salud": list(datos_formulario.get("salud", []))
+            "nombre": str(datos_formulario["nombre"]),
+            "edad": int(datos_formulario["edad"]),
+            "peso": float(datos_formulario["peso"]),
+            "talla": float(datos_formulario["talla"]),
+            "sexo": str(datos_formulario["sexo"]),
+            "objetivo": str(datos_formulario["objetivo"]),
+            "actividad":str(datos_formulario["actividad"]),
+            "salud": list(datos_formulario["salud"])
         }

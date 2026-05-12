@@ -5,7 +5,7 @@
 // ============================================================
 let sexo    = 'H';              // 'H' = Hombre | 'M' = Mujer
 let objetivo = 'perder_grasa'; // 'perder_grasa' | 'ganar_musculo'
-
+let actividad = 'sedentario';
 
 // ============================================================
 // CONSTANTES DE RENDERIZADO
@@ -44,6 +44,14 @@ function setObj(val) {
     document.getElementById('btn-ganar').classList.toggle('active', val === 'ganar_musculo');
 }
 
+function setActividad(val) {
+    actividad = val;
+    // Quitamos 'active' de todos los botones del grupo de actividad
+    document.querySelectorAll('#seg-actividad button')
+            .forEach(btn => btn.classList.remove('active'));
+    // Se lo ponemos solo al pulsado
+    event.target.classList.add('active');
+}
 
 // ============================================================
 // FUNCIÓN PRINCIPAL: recoge el formulario y llama al backend
@@ -80,6 +88,7 @@ async function generarPlan() {
         talla    : talla,
         sexo     : sexo,      // valor de la variable global
         objetivo : objetivo,  // valor de la variable global
+        actividad: actividad,
         salud    : condiciones
     };
 

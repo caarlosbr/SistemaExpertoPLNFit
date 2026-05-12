@@ -21,32 +21,38 @@ class PlanGenerado(Fact):
     # tipo (calorias, macro, ejercicio, aviso), valor
     pass
 
+FACTORES_ACTIVIDAD = {
+    "sedentario": 1.2,
+    "ligero":     1.375,
+    "moderado":   1.55,
+    "activo":     1.725,
+    "muy_activo": 1.9
+    }
 
 # Creamos el motor de inferencia 
 class MotorFitness(KnowledgeEngine):
 
     # Regla 1: calculamos la tasa metabólica Basal, con la fórmula de Mifflin-St Jeor
     # TMB = (10xP) + (6,25xh) - (5xe) + s(5=H,-161=M)
-    @Rule(Usuario(peso=MATCH.p, talla=MATCH.t, edad=MATCH.e, sexo=MATCH.s))
-    def calcular_tmb(self, p, t, e, s):
-        # aplicamos la fórmula matemática según el sexo del usuario
+    @Rule(Usuario(peso=MATCH.p, talla=MATCH.t, edad=MATCH.e, sexo=MATCH.s, actividad=MATCH.a))
+    def calcular_tmb(self, p, t, e, s, a):
         tmb = (10 * p) + (6.25 * t) - (5 * e) + (5 if s == "H" else -161)
-        # declaramos un nuevo hecho interno con el resultado de la tasa
-        self.declare(Fact(tmb_base=tmb))
-
+        factor = FACTORES_ACTIVIDAD.get(a, 1.2)
+        tdee = tmb * factor  # ahora usamos el TDEE real
+        self.declare(Fact(tdee_calculado=tdee))
 
     # Regla 2: lógica para la pérdida de grasa
-    @Rule(Fact(tmb_base=MATCH.tmb), Usuario(objetivo="perder_grasa"))
-    def objetivo_deficit(self, tmb):
-        # calculamos el 85% de la tasa, ya que si la tasa que nos ha dado es el 100%, con un 85 estaríamos perdiendo bastante porcentaje de la tasa.
-        self.declare(PlanGenerado(tipo="calorias", valor=int(tmb * 0.85)))
+    @Rule(Fact(tdee_calculado=MATCH.tdee), Usuario(objetivo="perder_grasa"))
+    def objetivo_deficit(self, tdee):
+        # calculamos el 95% de la tasa, ya que si la tasa que nos ha dado es el 100%, con un 95 estaríamos perdiendo bastante porcentaje de la tasa.
+        self.declare(PlanGenerado(tipo="calorias", valor=int(tdee * 0.90)))
         self.declare(Fact(tipo_dieta="definicion"))
 
     # Regla 3: lógica para la ganancia Muscular 
-    @Rule(Fact(tmb_base=MATCH.tmb), Usuario(objetivo="ganar_musculo"))
-    def objetivo_superavit(self, tmb):
-        # calculamos ahora el 115% de la tasa con un aumento calórico del 15%
-        self.declare(PlanGenerado(tipo="calorias", valor=int(tmb * 1.15)))
+    @Rule(Fact(tdee_calculado=MATCH.tdee), Usuario(objetivo="ganar_musculo"))
+    def objetivo_superavit(self, tdee):
+        # calculamos ahora el 110% de la tasa con un aumento calórico del 10%
+        self.declare(PlanGenerado(tipo="calorias", valor=int(tdee * 1.10)))
         self.declare(Fact(tipo_dieta="volumen"))
 
     # Regla 4: generación del menú semanal, y adaptación por salud
