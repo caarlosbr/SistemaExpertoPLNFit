@@ -86,8 +86,8 @@ async function generarPlan() {
         edad     : edad,
         peso     : peso,
         talla    : talla,
-        sexo     : sexo,      // valor de la variable global
-        objetivo : objetivo,  // valor de la variable global
+        sexo     : sexo,      
+        objetivo : objetivo,  
         actividad: actividad,
         salud    : condiciones
     };
@@ -189,16 +189,27 @@ function crearDayBlock(dia, datos) {
 
 // ─── Tarjeta completa de dieta semanal ──────────────────────
 // Itera sobre DIAS (en orden) y añade un bloque por cada día
-function crearCardDieta(dietaSemanal) {
+function crearCardMacros(macros) {
     const card = clonarTemplate('tpl-plan-card');
-    card.querySelector('.card-title').textContent = 'Dieta semanal sugerida';
-    const body = card.querySelector('.card-body');
+    card.querySelector('.card-title').textContent = 'Distribución de Macronutrientes';
+    
+    // Si macros no existe, ponemos un mensaje
+    if(!macros) return card;
 
-    for (const dia of DIAS) {
-        const datos = dietaSemanal?.[dia]; // ?. evita error si dietaSemanal es null
-        if (!datos) continue;             // si ese día no tiene datos, lo saltamos
-        body.appendChild(crearDayBlock(dia, datos));
-    }
+    card.querySelector('.card-body').innerHTML = `
+        <div class="macros-grid">
+            <div class="macro-item"><strong>Proteínas:</strong> ${macros.proteinas}</div>
+            <div class="macro-item"><strong>Grasas:</strong> ${macros.grasas}</div>
+            <div class="macro-item"><strong>Carbohidratos:</strong> ${macros.carbohidratos}</div>
+        </div>
+    `;
+    return card;
+}
+
+function crearCardGuia(guia) {
+    const card = clonarTemplate('tpl-plan-card');
+    card.querySelector('.card-title').textContent = 'Guía de Alimentos Recomendados';
+    card.querySelector('.card-body').innerHTML = `<p>${guia}</p>`;
     return card;
 }
 
@@ -233,13 +244,29 @@ function crearCardAvisos(aviso) {
 // ============================================================
 function renderPlan(plan, condiciones) {
     const result = document.getElementById('result');
-    result.innerHTML = ''; // limpiamos el contenido anterior
+    result.innerHTML = ''; // Limpiamos
 
+    // 1. Calorías
     result.appendChild(crearCardCalorias(plan.calorias));
-    result.appendChild(crearCardDieta(plan.dieta_semanal));
+
+    // 2. NUEVO: Macros (Proteínas, Grasas, Carbos)
+    if (plan.macros) {
+        result.appendChild(crearCardMacros(plan.macros));
+    }
+
+    // 3. NUEVO: Guía de alimentos
+    if (plan.guia_alimentaria) {
+        result.appendChild(crearCardGuia(plan.guia_alimentaria));
+    }
+
+    // 4. Dieta Semanal (Si la tienes configurada en el motor)
+    if (plan.dieta_semanal) {
+        result.appendChild(crearCardDieta(plan.dieta_semanal));
+    }
+
+    // 5. Ejercicio y Avisos
     result.appendChild(crearCardEjercicio(plan.ejercicio));
 
-    // La tarjeta de avisos solo se añade si el usuario marcó alguna condición
     if (condiciones.length > 0) {
         result.appendChild(crearCardAvisos(plan.aviso));
     }

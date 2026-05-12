@@ -21,6 +21,9 @@ class PlanGenerado(Fact):
     # tipo (calorias, macro, ejercicio, aviso), valor
     pass
 
+class EstadoDieta(Fact):
+    pass
+
 FACTORES_ACTIVIDAD = {
     "sedentario": 1.2,
     "ligero":     1.375,
@@ -44,55 +47,44 @@ class MotorFitness(KnowledgeEngine):
     # Regla 2: lógica para la pérdida de grasa
     @Rule(Fact(tdee_calculado=MATCH.tdee), Usuario(objetivo="perder_grasa"))
     def objetivo_deficit(self, tdee):
-        # calculamos el 95% de la tasa, ya que si la tasa que nos ha dado es el 100%, con un 95 estaríamos perdiendo bastante porcentaje de la tasa.
-        self.declare(PlanGenerado(tipo="calorias", valor=int(tdee * 0.90)))
-        self.declare(Fact(tipo_dieta="definicion"))
+        cal = int(tdee * 0.90)
+        self.declare(PlanGenerado(tipo="calorias", valor=cal))
+        self.declare(Fact(tipo_dieta="definicion", cal=cal))
 
     # Regla 3: lógica para la ganancia Muscular 
     @Rule(Fact(tdee_calculado=MATCH.tdee), Usuario(objetivo="ganar_musculo"))
     def objetivo_superavit(self, tdee):
-        # calculamos ahora el 110% de la tasa con un aumento calórico del 10%
-        self.declare(PlanGenerado(tipo="calorias", valor=int(tdee * 1.10)))
-        self.declare(Fact(tipo_dieta="volumen"))
+        cal = int(tdee * 1.10)
+        self.declare(PlanGenerado(tipo="calorias", valor=cal))
+        self.declare(Fact(tipo_dieta="volumen", cal=cal))
 
-    # Regla 4: generación del menú semanal, y adaptación por salud
-    @Rule(Fact(tipo_dieta=MATCH.td), Usuario(salud=MATCH.s))
-    def generar_dieta_semanal(self, td, s):
-        dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+    @Rule(Fact(tipo_dieta=MATCH.td, cal=MATCH.cal))
+    def generar_dieta_dinamica(self, td, cal):
+        if td == "volumen":
+            p_prot, p_fat, p_carb = 0.25, 0.25, 0.50 
+        else:
+            p_prot, p_fat, p_carb = 0.40, 0.25, 0.35
 
-        # Mini base de datos en un diccionario donde vamos a definir dietas bastantes generales según el tipo de dieta
-        menus = {
-            "definicion": {
-                "Lunes": ("Claras con pavo", "Pollo y espárragos", "Pescado blanco"),
-                "Martes": ("Yogur desnatado", "Ensalada de atún", "Tortilla francesa"),
-                "Miércoles": ("Kiwi y avena", "Pavo a la plancha", "Verduras al vapor"),
-                "Jueves": ("Tostada integral", "Merluza al horno", "Pechuga de pollo"),
-                "Viernes": ("Tortilla de claras", "Ternera magra", "Sepia a la plancha"),
-                "Sábado": ("Batido proteico", "Wok de tofu", "Ensalada mixta"),
-                "Domingo": ("Fruta variada", "Conejo al ajillo", "Sopa de verduras")
-            },
-            "volumen": {
-                "Lunes": ("Avena y plátano", "Pasta boloñesa", "Salmón con patata"),
-                "Martes": ("Tortilla y aguacate", "Arroz con pollo", "Filete de ternera"),
-                "Miércoles": ("Sándwich de atún", "Lentejas con arroz", "Huevos revueltos"),
-                "Jueves": ("Gachas de avena", "Guiso de patatas", "Pechuga y quinoa"),
-                "Viernes": ("Tortitas de arroz", "Hamburguesa casera", "Pasta integral"),
-                "Sábado": ("Yogur griego y nueces", "Arroz con ternera", "Pizza fitness"),
-                "Domingo": ("Omelette de jamón", "Paella de pollo", "Salmón y espárragos")
-            }
+        g_prot = int((cal * p_prot) / 4)
+        g_fat = int((cal * p_fat) / 9)
+        g_carb = int((cal * p_carb) / 4)
+
+        resumen_macros = {
+            "proteinas": f"{g_prot}g",
+            "grasas": f"{g_fat}g",
+            "carbohidratos": f"{g_carb}g",
+            "total_kcal": cal
         }
 
-        dieta_dict = {}
-        for dia in dias:
-            # Desempaquetamos la tupla de 3 elementos en tres variables 
-            d, c, cen = menus[td][dia]
+        guia_alimentos = self.obtener_alimentos_por_macros(td)
 
-            # si detectamos intoleracia, cambiamos el ingrediente
-            if "intolerante_lactosa" in s:
-                d = d.replace("Yogur", "Yogur de soja")
-            dieta_dict[dia] = {"desayuno": d, "comida": c, "cena": cen}
+        self.declare(PlanGenerado(tipo="macros", valor=resumen_macros))
+        self.declare(PlanGenerado(tipo="guia_alimentaria", valor=guia_alimentos))
 
-        self.declare(PlanGenerado(tipo="dieta_semanal", valor=dieta_dict))
+    def obtener_alimentos_por_macros(self, tipo):
+        if tipo == "volumen":
+            return "Prioriza: Arroz, pasta, legumbres, pollo y huevos enteros."
+        return "Prioriza: Pescado blanco, claras de huevo, verduras verdes y pavo."
 
     # Regla 5: recomendación de ejericios según la salud
     @Rule(Usuario(salud=MATCH.s))
